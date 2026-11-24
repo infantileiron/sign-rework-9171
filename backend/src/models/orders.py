@@ -33,3 +33,8 @@ def edit_order(db, code, details):
     if not row:
         raise Problem(404, '工单不存在')
     return row
+
+
+def settlement_lines(db, code):
+    """Return True when the order's hours are governed by settlement allocations."""
+    return db.execute('SELECT 1 FROM settlement_lines WHERE order_code = %s LIMIT 1', (code,)).fetchone() is not None

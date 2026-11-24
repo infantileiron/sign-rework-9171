@@ -9,6 +9,7 @@ class Input(BaseModel):
 
 CrewCode = Annotated[str, StringConstraints(pattern=r'^G[0-9]{2}$')]
 OrderCode = Annotated[str, StringConstraints(pattern=r'^[A-Z][A-Z0-9-]{2,19}$')]
+SerialCode = Annotated[str, StringConstraints(pattern=r'^[A-Z0-9][A-Z0-9-]{1,39}$')]
 
 
 class Intake(Input):
@@ -44,6 +45,40 @@ class PlanInput(Input):
         if len(set(value)) != len(value):
             raise ValueError('版本内的特征不能重复')
         return value
+
+
+class WorkLogInput(Input):
+    serial: SerialCode
+    hours: float = Field(gt=0, le=100000)
+
+
+class WorkLogBatch(Input):
+    entries: list[WorkLogInput] = Field(min_length=1, max_length=200)
+
+    @model_validator(mode='after')
+    def unique_serials(self):
+        serials = [row.serial for row in self.entries]
+        if len(set(serials)) != len(serials):
+            raise ValueError('同一批记工流水的流水号不能重复')
+        return self
+
+
+class Allocation(Input):
+    order: OrderCode
+    serial: SerialCode
+    hours: float = Field(ge=0, le=200)
+
+
+class SettlementInput(Input):
+    sheet_no: str = Field(min_length=1, max_length=64)
+    allocations: list[Allocation] = Field(min_length=1, max_length=600)
+
+    @model_validator(mode='after')
+    def unique_entries(self):
+        pairs = [(row.order, row.serial) for row in self.allocations]
+        if len(set(pairs)) != len(pairs):
+            raise ValueError('同一工单对同一流水只能分摊一次')
+        return self
 
 
 class RunInput(Input):

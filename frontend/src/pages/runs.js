@@ -12,8 +12,10 @@ export function reportList(reports) {
 
 function preview(root, selected) {
   const included = studio.crews.filter(crew => crew.samples);
+  const waiting = studio.settlement.waiting_orders ?? [];
   root.querySelector('#partition-preview').innerHTML = `<div class="partition-strip">${included.map(crew => `<div class="${crew.code === selected ? 'held' : ''}"><span class="mono">${crew.code}</span><strong>${esc(crew.name)}</strong><small>${crew.samples} 条 · ${crew.code === selected ? '独立留出' : '开发'}</small></div>`).join('')}</div>
-    <p class="subtle">开发组各做一折验证，同一摄制组的工单始终一起划分。独立留出组只用于最终评估。</p>`;
+    <p class="subtle">开发组各做一折验证，同一摄制组的工单始终一起划分。独立留出组只用于最终评估。</p>
+    ${waiting.length ? `<div class="waiting-note"><b>${waiting.length} 张工单的结算流水尚未对齐</b><p>本批比选仍使用这些工单的旧样本；同组流水全部对上后会一次性切换，下一次提交才采用新工时。不相干的工单照常进入样本。</p></div>` : ''}`;
 }
 
 export function runsPage(root) {

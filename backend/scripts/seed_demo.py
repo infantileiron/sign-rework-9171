@@ -22,6 +22,48 @@ def demo_order(group, index):
             f'G{group:02d}', minutes, shots, switches, hours)
 
 
+def demo_settlements(db):
+    """Seed a shared-serial example that exercises alignment and waiting.
+
+    QY-0601 and QY-0602 share one work-log entry that has arrived; the two
+    shares add up to the ledger amount, so the pair aligns. QY-0603 shares a
+    second entry whose ledger row is deliberately absent, so QY-0603 keeps its
+    old sample and demonstrates the "没到流水" state until 记工补传 arrives.
+    Every other seeded order gets a single-serial allocation equal to its
+    recorded hours.
+    """
+    orders = {row['code']: row['hours'] for row in db.execute('SELECT code, hours FROM orders').fetchall()}
+    sheets = {}
+    for group in range(1, 7):
+        sheet_no = f'JS-{group:02d}'
+        sheet = db.execute('''INSERT INTO settlement_sheets (sheet_no, uploaded_by) VALUES (%s, %s)
+            ON CONFLICT (sheet_no) DO NOTHING RETURNING id''', (sheet_no, 'analyst@bridge.test')).fetchone()
+        sheets[group] = sheet['id'] if sheet else db.execute(
+            'SELECT id FROM settlement_sheets WHERE sheet_no = %s', (sheet_no,)).fetchone()['id']
+
+    ledger, lines = [], []
+    shared = ['QY-0601', 'QY-0602']
+    if all(code in orders for code in shared):
+        serial = 'JS-06-SHARE'
+        ledger.append((serial, round(sum(orders[code] for code in shared), 2)))
+        lines += [(sheets[6], code, serial, orders[code]) for code in shared]
+        waiting = 'QY-0603'
+        if waiting in orders:
+            lines.append((sheets[6], waiting, 'JS-06-PENDING', orders[waiting]))
+    for code, hours in orders.items():
+        if code in shared or code == 'QY-0603':
+            continue
+        group = int(code[3:5])
+        ledger.append((f'{code}-L1', hours))
+        lines.append((sheets[group], code, f'{code}-L1', hours))
+
+    with db.cursor() as cursor:
+        cursor.executemany('''INSERT INTO work_logs (serial, hours) VALUES (%s, %s)
+            ON CONFLICT (serial) DO NOTHING''', ledger)
+        cursor.executemany('''INSERT INTO settlement_lines (sheet_id, order_code, serial, hours)
+            VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING''', lines)
+
+
 def seed():
     with connect() as db:
         for email, name, role in ACCOUNTS:
@@ -36,6 +78,7 @@ def seed():
             VALUES ('接单三项 · v1', 0.10, ARRAY['minutes','shots','switches'], %s),
                    ('时长与镜头 · v2', 0.20, ARRAY['minutes','shots'], %s)
             ON CONFLICT (name) DO NOTHING''', ('analyst@bridge.test', 'analyst@bridge.test'))
+        demo_settlements(db)
         # Stable natural keys and user-editable values make repeat runs directly comparable.
         sets = {table: db.execute(f'SELECT {columns} FROM {table} ORDER BY {order_key}').fetchall()
                 for table, columns, order_key in (

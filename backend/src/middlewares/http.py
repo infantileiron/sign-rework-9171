@@ -38,7 +38,9 @@ async def validation_handler(request, error: RequestValidationError):
     location = '.'.join(str(part) for part in issue['loc'][1:])
     labels = {'code': '工单号', 'title': '视频名称', 'crew': '摄制组', 'minutes': '成片分钟',
               'shots': '镜头数', 'switches': '背景切换', 'hours': '实际返工工时', 'name': '版本名',
-              'alpha': '正则强度 α', 'features': '候选特征', 'holdout': '留出组', 'plan_id': '特征方案'}
+              'alpha': '正则强度 α', 'features': '候选特征', 'holdout': '留出组', 'plan_id': '特征方案',
+              'sheet_no': '结算单号', 'order': '工单号', 'serial': '流水号', 'entries': '记工流水',
+              'work_logs': '记工流水', 'allocations': '工单分摊'}
     if issue['type'] == 'value_error':
         message = str(issue['ctx']['error'])
     else:

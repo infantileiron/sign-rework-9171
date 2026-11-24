@@ -26,6 +26,10 @@ export const api = {
   reports: () => request('/reports'),
   saveOrder: (data, code) => request(code ? `/orders/${encodeURIComponent(code)}` : '/orders', {method:code ? 'PUT' : 'POST', data}),
   savePlan: data => request('/plans', {method:'POST', data}),
+  settlements: () => request('/settlements'),
+  saveSettlement: data => request('/settlements', {method:'POST', data}),
+  saveWorkLogs: entries => request('/settlements/work-logs', {method:'POST', data:{entries}}),
+  orderSettlement: code => request(`/orders/${encodeURIComponent(code)}/settlement`),
   run: data => request('/reports', {method:'POST', data}),
   report: (id, signal) => request(`/reports/${id}`, {signal}),
   publish: id => request(`/reports/${id}/publish`, {method:'POST'}),
@@ -34,7 +38,7 @@ export const api = {
 };
 
 export async function loadStudio() {
-  [studio.orders, studio.crews, studio.plans, studio.reports] = await Promise.all([
-    api.orders(), api.crews(), api.plans(), api.reports(),
+  [studio.orders, studio.crews, studio.plans, studio.reports, studio.settlement] = await Promise.all([
+    api.orders(), api.crews(), api.plans(), api.reports(), api.settlements(),
   ]);
 }

@@ -180,6 +180,29 @@ dialog .panel-head { padding: 0 0 10px; min-height: 32px; }
 .fold > p { padding: 6px 17px; }
 .form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
 .form-actions output { font-weight: 700; color: var(--orange); }
+
+/* 结算补录与流水对账 */
+.settle-state, .serial-chip { display: inline-flex; align-items: center; gap: 5px; border-radius: 3px; padding: 3px 7px; font-size: 11px; white-space: nowrap; background: var(--high); color: var(--muted); }
+.settle-state::before, .serial-chip::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.settle-state.aligned, .serial-chip.matched { background: var(--green-bg); color: var(--green); }
+.settle-state.waiting, .serial-chip.missing, .serial-chip.unbalanced { background: var(--amber-bg); color: var(--orange); }
+.settle-state.unsettled { color: var(--quiet); }
+.serial-count { margin-left: 6px; font-size: 11px; color: var(--orange); }
+.reconcile-summary { display: grid; gap: 12px; padding: 15px 17px; }
+.reconcile-summary > div > span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+.reconcile-summary .section-note { padding: 0; }
+.waiting-note, .missing-note { margin: 12px 0 0; padding: 11px 14px; border-left: 2px solid var(--orange); background: var(--amber-bg); border-radius: 0 3px 3px 0; font-size: 12px; }
+.waiting-note ul { margin: 7px 0 0; padding-left: 17px; color: var(--muted); display: grid; gap: 4px; }
+.waiting-note .mono, .missing-note .mono { color: var(--orange); margin-right: 6px; }
+.missing-note p { margin-top: 4px; color: var(--muted); }
+.ledger-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 12px 0 4px; color: var(--muted); font-size: 12px; }
+.ledger-summary b { color: var(--text); }
+#ledger-dialog { width: min(660px,calc(100% - 24px)); }
+#settlement-dialog { width: min(760px,calc(100% - 24px)); }
+.entry-row { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(0,.8fr) auto; gap: 7px; margin-bottom: 7px; }
+.entry-row input, .entry-row select { min-height: 33px; }
+#alloc-rows .entry-row { grid-template-columns: minmax(0,1.25fr) minmax(0,1fr) minmax(0,.7fr) auto; }
+fieldset > button.plain { justify-self: start; color: var(--orange); font-size: 12px; }
 @media (prefers-reduced-motion: reduce) { .bar { animation: none; } }
 @media (max-width: 1279px) {
   .workspace { grid-template-columns: 172px minmax(0,1fr); }
